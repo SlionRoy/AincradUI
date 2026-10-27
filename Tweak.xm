@@ -1,50 +1,54 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
+#import <CoreFoundation/CoreFoundation.h>
 
-// Exploratory private SpringBoard hooks: not validated on iOS 16.7.16.
-// Disabled by default for safer installation.
 static BOOL gEnabled = NO;
 static BOOL gHideDock = YES;
-
+static BOOL gLandscape = NO;
+static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
-    NSDictionary *prefs = [NSDictionary dictionaryWithContentsOfFile:
-        @"/var/mobile/Library/Preferences/com.aincrad.ui.plist"];
-    gEnabled = [prefs[@"Enabled"] boolValue];
-    gHideDock = prefs[@"HideDock"] ? [prefs[@"HideDock"] boolValue] : YES;
+    NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
+    gEnabled = [p[@"Enabled"] boolValue];
+    gHideDock = p[@"HideDock"] ? [p[@"HideDock"] boolValue] : YES;
+    gLandscape = [p[@"Landscape"] boolValue];
 }
+static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
+static BOOL ShouldHide(void) { return gEnabled && gHideDock; }
+static BOOL ShouldRotate(void) { return gEnabled && gLandscape; }
 
 %hook SBIconController
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return gEnabled ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
+    return ShouldRotate() ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
 }
 - (BOOL)shouldAutorotate {
-    return gEnabled ? YES : %orig;
+    return ShouldRotate() ? YES : %orig;
 }
 %end
 
 %hook SBRootFolderController
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return gEnabled ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
+    return ShouldRotate() ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
 }
 - (BOOL)shouldAutorotate {
-    return gEnabled ? YES : %orig;
+    return ShouldRotate() ? YES : %orig;
 }
 %end
 
+// Dock containers: try both commonly observed SpringBoard classes.
+// This remains unverified against iOS 16.7.16 internals.
+%hook SBDockView
+- (void)didMoveToWindow { %orig; [(UIView *)self setHidden:ShouldHide()]; }
+- (void)layoutSubviews { %orig; [(UIView *)self setHidden:ShouldHide()]; }
+%end
 %hook SBDockIconListView
-- (void)didMoveToWindow {
-    %orig;
-    if (gEnabled && gHideDock) [(UIView *)self setHidden:YES];
-}
-- (void)layoutSubviews {
-    %orig;
-    if (gEnabled && gHideDock) [(UIView *)self setHidden:YES];
-}
+- (void)didMoveToWindow { %orig; [(UIView *)self setHidden:ShouldHide()]; }
+- (void)layoutSubviews { %orig; [(UIView *)self setHidden:ShouldHide()]; }
 %end
 
 %ctor {
     @autoreleasepool {
         LoadPrefs();
-        NSLog(@"[AincradUI] loaded enabled=%d hideDock=%d", gEnabled, gHideDock);
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, Changed,
+          CFSTR("com.aincrad.ui/preferences.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     }
 }
