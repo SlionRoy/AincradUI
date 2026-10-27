@@ -37,12 +37,24 @@ static BOOL ShouldRotate(void) { return gEnabled && gLandscape; }
 // Dock containers: try both commonly observed SpringBoard classes.
 // This remains unverified against iOS 16.7.16 internals.
 %hook SBDockView
-- (void)didMoveToWindow { %orig; [(UIView *)self setHidden:ShouldHide()]; }
-- (void)layoutSubviews { %orig; [(UIView *)self setHidden:ShouldHide()]; }
+- (void)didMoveToWindow {
+    %orig;
+    [(UIView *)self setHidden:ShouldHide()];
+}
+- (void)layoutSubviews {
+    %orig;
+    [(UIView *)self setHidden:ShouldHide()];
+}
 %end
 %hook SBDockIconListView
-- (void)didMoveToWindow { %orig; [(UIView *)self setHidden:ShouldHide()]; }
-- (void)layoutSubviews { %orig; [(UIView *)self setHidden:ShouldHide()]; }
+- (void)didMoveToWindow {
+    %orig;
+    [(UIView *)self setHidden:ShouldHide()];
+}
+- (void)layoutSubviews {
+    %orig;
+    [(UIView *)self setHidden:ShouldHide()];
+}
 %end
 
 %ctor {
