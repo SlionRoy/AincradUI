@@ -5,7 +5,7 @@ include $(THEOS)/makefiles/common.mk
 BUNDLE_NAME := AincradUIPrefs
 AincradUIPrefs_FILES := AIPRootListController.m
 AincradUIPrefs_FRAMEWORKS := UIKit
-AincradUIPrefs_PRIVATE_FRAMEWORKS := Preferences
+AincradUIPrefs_LDFLAGS += -Wl,-undefined,dynamic_lookup
 AincradUIPrefs_INSTALL_PATH := /Library/PreferenceBundles
 AincradUIPrefs_CFLAGS := -fobjc-arc
 include $(THEOS_MAKE_PATH)/bundle.mk
