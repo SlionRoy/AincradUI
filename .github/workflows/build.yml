@@ -1,0 +1,28 @@
+name: Build Aincrad UI (experimental)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Theos
+        uses: Randomblock1/theos-action@v1
+        with:
+          theos-src: https://github.com/theos/theos
+          theos-sdks: https://github.com/theos/sdks
+      - name: Build Rootless package
+        run: |
+          set -euo pipefail
+          make clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          test "$(find packages -name '*.deb' | wc -l | tr -d ' ')" -gt 0
+          shasum -a 256 packages/*.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AincradUI-rootless-experimental
+          path: packages/*.deb
+          if-no-files-found: error
