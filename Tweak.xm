@@ -34,11 +34,11 @@ static void LoadPrefs(void) {
 %hook SBDockIconListView
 - (void)didMoveToWindow {
     %orig;
-    if (gEnabled && gHideDock) self.hidden = YES;
+    if (gEnabled && gHideDock) [(UIView *)self setHidden:YES];
 }
 - (void)layoutSubviews {
     %orig;
-    if (gEnabled && gHideDock) self.hidden = YES;
+    if (gEnabled && gHideDock) [(UIView *)self setHidden:YES];
 }
 %end
 
