@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
+#import <CoreFoundation/CoreFoundation.h>
 // Separate opt-in injection target. SpringBoard tweaks remain untouched.
 static BOOL AIPSelected(void) {
     static BOOL initialized = NO;
@@ -27,3 +28,39 @@ static BOOL AIPSelected(void) {
     return AIPSelected() ? UIInterfaceOrientationMaskLandscape : %orig;
 }
 %end
+
+static void AIPRequestLandscape(void) {
+    if (!AIPSelected()) return;
+    if (@available(iOS 16.0, *)) {
+        for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+            if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+            if (scene.activationState != UISceneActivationStateForegroundActive) continue;
+            UIWindowSceneGeometryPreferencesIOS *prefs =
+                [[UIWindowSceneGeometryPreferencesIOS alloc] initWithInterfaceOrientations:UIInterfaceOrientationMaskLandscape];
+            [(UIWindowScene *)scene requestGeometryUpdateWithPreferences:prefs errorHandler:^(NSError *error) {
+                NSLog(@"[AincradUI] app landscape request failed: %@", error);
+            }];
+        }
+    }
+}
+static void AIPAppActivated(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef info) {
+    if (AIPSelected()) dispatch_async(dispatch_get_main_queue(), ^{ AIPRequestLandscape(); });
+}
+%hook NSBundle
+- (id)objectForInfoDictionaryKey:(NSString *)key {
+    if (self == [NSBundle mainBundle] && AIPSelected() &&
+        ([key isEqualToString:@"UISupportedInterfaceOrientations"] ||
+         [key isEqualToString:@"UISupportedInterfaceOrientations~iphone"])) {
+        return @[@"UIInterfaceOrientationLandscapeLeft", @"UIInterfaceOrientationLandscapeRight"];
+    }
+    return %orig;
+}
+%end
+%ctor {
+    @autoreleasepool {
+        if (AIPSelected()) {
+            [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
+                object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) { AIPRequestLandscape(); }];
+        }
+    }
+}
