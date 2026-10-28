@@ -3,6 +3,7 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
+#import <math.h>
 
 static BOOL gEnabled = NO;
 static BOOL gHideDock = YES;
