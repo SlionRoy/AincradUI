@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict><key>items</key><array>
-<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v0.7 · 壁纸备用来源</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v0.8 · 壁纸诊断</string></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>启用 Aincrad UI</string><key>key</key><string>Enabled</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>亚丝娜 HUD 顶栏</string><key>key</key><string>HUD</string><key>default</key><true/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>隐藏 Dock（含图标）</string><key>key</key><string>HideDock</string><key>default</key><true/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>独立桌面横屏（实验性）</string><key>key</key><string>Landscape</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>锁定桌面横屏</string><key>key</key><string>LandscapeLock</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>横屏通知中心壁纸（实验）</string><key>key</key><string>NCWallpaper</string><key>default</key><false/></dict>
-<dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>测试独立横屏前请关闭 AutoRotate 并 Respring；锁定横屏需同时开启独立桌面横屏；进入横屏后锁定不会随手机竖起返回竖屏。若无法读取系统壁纸，请使用 Filza 将 JPEG 图片放在 /var/mobile/Library/AincradUI/NCWallpaper.jpg；该功能仍属实验性，显示层级可能需要继续调整。修改后 Respring。发生桌面异常时禁用插件或通过 Dopamine 安全模式卸载。</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>测试独立横屏前请关闭 AutoRotate 并 Respring；锁定横屏需同时开启独立桌面横屏；进入横屏后锁定不会随手机竖起返回竖屏。若无法读取系统壁纸，请使用 Filza 将 JPEG 图片放在 /var/mobile/Library/AincradUI/NCWallpaper.jpg；调试信息在 /var/mobile/Library/AincradUI/diagnostic.txt。壁纸显示仍为实验性。修改后 Respring。发生桌面异常时禁用插件或通过 Dopamine 安全模式卸载。</string></dict>
 </array></dict></plist>
