@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict><key>items</key><array>
-<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v0.3 · 亚丝娜 HUD</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v0.4 · 独立横屏</string></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>启用 Aincrad UI</string><key>key</key><string>Enabled</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>亚丝娜 HUD 顶栏</string><key>key</key><string>HUD</string><key>default</key><true/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>隐藏 Dock（含图标）</string><key>key</key><string>HideDock</string><key>default</key><true/></dict>
-<dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>实验性桌面横屏</string><key>key</key><string>Landscape</string><key>default</key><false/></dict>
-<dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>iOS 16.7.16 横屏尚未实机验证。修改后需要 Respring。发生桌面异常时禁用插件或通过 Dopamine 安全模式卸载。</string></dict>
+<dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>独立桌面横屏（实验性）</string><key>key</key><string>Landscape</string><key>default</key><false/></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>测试独立横屏前请关闭 AutoRotate 并 Respring；关闭本开关也需 Respring。发生桌面异常时禁用插件或通过 Dopamine 安全模式卸载。</string></dict>
 </array></dict></plist>
