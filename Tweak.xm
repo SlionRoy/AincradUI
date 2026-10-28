@@ -74,7 +74,6 @@ static void UpdateHUD(UIView *host) {
 static const NSInteger kSAOEntryTag = 0xA1D0;
 static const NSInteger kSAOPanelTag = 0xA1D1;
 static const NSInteger kSAOStatusTag = 0xA1D2;
-static const NSInteger kSAOSubmenuTag = 0xA1D3;
 @interface AincradMenuActions : NSObject
 - (void)toggle:(UIButton *)sender;
 - (void)close:(UIButton *)sender;
