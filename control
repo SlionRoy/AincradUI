@@ -1,8 +1,8 @@
 Package: com.aincrad.ui
 Name: Aincrad UI
-Version: 0.2.1
+Version: 0.3.0
 Architecture: iphoneos-arm64
-Description: Experimental home-only landscape and Dock hide with Settings.
+Description: Asuna themed HUD, dock controls and experimental rotation.
 Maintainer: Aincrad UI
 Author: Aincrad UI
 Section: Tweaks
