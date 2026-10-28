@@ -179,7 +179,12 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
         UIScreen *screen = [UIScreen mainScreen];
         CGSize pixels = screen.nativeBounds.size;
         CGFloat scale = screen.nativeScale;
-        status.text = [NSString stringWithFormat:@"屏幕 %.0f×%.0f · %.2fx", pixels.width, pixels.height, scale];
+        CGFloat factor = AincradScale();
+        // Preview only: increasing the logical canvas may make content smaller,
+        // but this is not an applied system resolution.
+        CGFloat targetW = ceil(pixels.width / factor / 2.0) * 2.0;
+        CGFloat targetH = ceil(pixels.height / factor / 2.0) * 2.0;
+        status.text = [NSString stringWithFormat:@"原生 %.0f×%.0f · 预估 %.0f×%.0f", pixels.width, pixels.height, targetW, targetH];
         NSString *info = [NSString stringWithFormat:@"read-only display: pixels=%@ nativeScale=%.3f bounds=%@ scale=%.3f",
             NSStringFromCGSize(pixels), scale, NSStringFromCGRect(screen.bounds), screen.scale];
         NSLog(@"[AincradUI] %@", info);
