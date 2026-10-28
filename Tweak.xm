@@ -14,8 +14,8 @@ static BOOL gHomeWallpaper = NO;
 static BOOL gSystemLandscape = NO;
 static BOOL gControlCenterLandscape = NO;
 static BOOL gSAOMenu = NO;
-static NSInteger gScaleMode = 0;
-static CGFloat AincradScale(void) { return gEnabled ? (gScaleMode == 1 ? 0.90 : (gScaleMode == 2 ? 0.84 : 1.0)) : 1.0; }
+static CGFloat gScaleValue = 1.0;
+static CGFloat AincradScale(void) { return gEnabled ? gScaleValue : 1.0; }
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
     NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
@@ -29,7 +29,10 @@ static void LoadPrefs(void) {
     gSystemLandscape = [p[@"SystemLandscape"] boolValue];
     gControlCenterLandscape = [p[@"ControlCenterLandscape"] boolValue];
     gSAOMenu = [p[@"SAOMenu"] boolValue];
-    gScaleMode = MIN(2, MAX(0, [p[@"ScaleMode"] integerValue]));
+    // Preserve old v1.7 choices when upgrading, unless a slider value was saved.
+    id value = p[@"ScaleValue"];
+    CGFloat ratio = value ? [value doubleValue] : ([p[@"ScaleMode"] integerValue] == 1 ? 0.90 : ([p[@"ScaleMode"] integerValue] == 2 ? 0.84 : 1.0));
+    gScaleValue = isfinite(ratio) ? MIN(1.0, MAX(0.65, ratio)) : 1.0;
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
 static BOOL ShouldSystemLandscape(void) { return gEnabled && gSystemLandscape; }
