@@ -38,6 +38,21 @@ umask 077
       echo "not readable: $target"
     fi
   done
+  echo "MACH-O LOAD COMMANDS (read only)"
+  if command -v otool >/dev/null 2>&1; then
+    otool -L /usr/libexec/backboardd 2>&1 | head -n 65 || :
+    echo "DISPLAY IMPORTS (limited)"
+    otool -Iv /usr/libexec/backboardd 2>&1 | grep -Ei 'IOMobileFramebuffer|BKDisplay|BKSDisplay|DisplayMode|Framebuffer' | head -n 55 || :
+  else
+    echo "otool unavailable: imports cannot be validated by this tool"
+  fi
+  if command -v nm >/dev/null 2>&1; then
+    echo "UNDEFINED DISPLAY SYMBOLS (limited)"
+    nm -u /usr/libexec/backboardd 2>&1 | grep -Ei 'IOMobileFramebuffer|BKDisplay|BKSDisplay|DisplayMode|Framebuffer' | head -n 55 || :
+  else
+    echo "nm unavailable: symbol-table inspection skipped"
+  fi
+  echo "No process attachment, injection, configuration writes or framebuffer calls performed."
   echo "NOTE: no display mode, framebuffer, preferences or launchd state changed."
 } > "$OUT"
 echo "Read-only report saved to: $OUT"
