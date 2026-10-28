@@ -22,6 +22,22 @@ umask 077
   for p in /usr/libexec/backboardd /System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices; do
     if test -r "$p"; then ls -l "$p"; else echo "not readable: $p"; fi
   done
+  echo "READ-ONLY DISPLAY INTERFACE CANDIDATES"
+  echo "A match is only a literal byte sequence, not evidence of a callable API."
+  echo "Absence is inconclusive: symbols may live in the dyld shared cache."
+  for target in /usr/libexec/backboardd /System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices /System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer; do
+    if test -r "$target"; then
+      echo "target: $target"
+      if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$target" 2>/dev/null || :; fi
+      for token in IOMobileFramebufferSetDisplaySize IOMobileFramebufferGetDisplaySize IOMobileFramebufferOpen IOMobileFramebufferGetMainDisplay FBDisplayManager BKDisplay FBDisplayScreenInfo BKSDisplayServices UIScreenMode displayMode setDisplayMode; do
+        if LC_ALL=C grep -a -q -F "$token" "$target" 2>/dev/null; then
+          echo "literal found: $token"
+        fi
+      done
+    else
+      echo "not readable: $target"
+    fi
+  done
   echo "NOTE: no display mode, framebuffer, preferences or launchd state changed."
 } > "$OUT"
 echo "Read-only report saved to: $OUT"
