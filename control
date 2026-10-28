@@ -1,6 +1,6 @@
 Package: com.aincrad.ui
 Name: Aincrad UI
-Version: 1.2.1
+Version: 1.3.0
 Architecture: iphoneos-arm64
 Description: Asuna HUD, hidden dock, native experimental home landscape.
 Maintainer: Aincrad UI
