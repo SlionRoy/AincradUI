@@ -43,9 +43,6 @@ static void AIPRequestLandscape(void) {
         }
     }
 }
-static void AIPAppActivated(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef info) {
-    if (AIPSelected()) dispatch_async(dispatch_get_main_queue(), ^{ AIPRequestLandscape(); });
-}
 %hook NSBundle
 - (id)objectForInfoDictionaryKey:(NSString *)key {
     if (self == [NSBundle mainBundle] && AIPSelected() &&
