@@ -13,6 +13,7 @@ static BOOL gNCWallpaper = NO;
 static BOOL gHomeWallpaper = NO;
 static BOOL gSystemLandscape = NO;
 static BOOL gControlCenterLandscape = NO;
+static BOOL gSAOMenu = NO;
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
     NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
@@ -25,6 +26,7 @@ static void LoadPrefs(void) {
     gHomeWallpaper = [p[@"HomeWallpaper"] boolValue];
     gSystemLandscape = [p[@"SystemLandscape"] boolValue];
     gControlCenterLandscape = [p[@"ControlCenterLandscape"] boolValue];
+    gSAOMenu = [p[@"SAOMenu"] boolValue];
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
 static BOOL ShouldSystemLandscape(void) { return gEnabled && gSystemLandscape; }
@@ -68,6 +70,116 @@ static void UpdateHUD(UIView *host) {
     ]];
 }
 
+
+static const NSInteger kSAOEntryTag = 0xA1D0;
+static const NSInteger kSAOPanelTag = 0xA1D1;
+static const NSInteger kSAOStatusTag = 0xA1D2;
+@interface AincradMenuActions : NSObject
+- (void)toggle:(UIButton *)sender;
+- (void)close:(UIButton *)sender;
+- (void)status:(UIButton *)sender;
+@end
+@implementation AincradMenuActions
+- (void)toggle:(UIButton *)sender {
+    UIView *host = sender.superview;
+    if (!host) return;
+    UIView *old = [host viewWithTag:kSAOPanelTag];
+    if (old) { [old removeFromSuperview]; return; }
+    UIView *panel = [[UIView alloc] initWithFrame:CGRectZero];
+    panel.tag = kSAOPanelTag;
+    panel.translatesAutoresizingMaskIntoConstraints = NO;
+    panel.backgroundColor = [UIColor colorWithRed:0.055 green:0.105 blue:0.19 alpha:0.94];
+    panel.layer.cornerRadius = 15;
+    panel.layer.borderWidth = 1;
+    panel.layer.borderColor = [UIColor colorWithRed:0.68 green:0.86 blue:1 alpha:0.9].CGColor;
+    UILabel *heading = [UILabel new];
+    heading.text = @"✧ AINCRAD  /  SYSTEM MENU";
+    heading.textColor = [UIColor whiteColor];
+    heading.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
+    heading.translatesAutoresizingMaskIntoConstraints = NO;
+    [panel addSubview:heading];
+    UILabel *status = [UILabel new];
+    status.tag = kSAOStatusTag;
+    status.text = @"欢迎进入 Aincrad";
+    status.textColor = [UIColor colorWithRed:0.78 green:0.9 blue:1 alpha:1];
+    status.font = [UIFont systemFontOfSize:12];
+    status.translatesAutoresizingMaskIntoConstraints = NO;
+    [panel addSubview:status];
+    UIButton *info = [UIButton buttonWithType:UIButtonTypeSystem];
+    [info setTitle:@"查看系统状态" forState:UIControlStateNormal];
+    [info setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    info.backgroundColor = [UIColor colorWithRed:0.13 green:0.28 blue:0.47 alpha:1];
+    info.layer.cornerRadius = 8;
+    info.translatesAutoresizingMaskIntoConstraints = NO;
+    [info addTarget:self action:@selector(status:) forControlEvents:UIControlEventTouchUpInside];
+    [panel addSubview:info];
+    UIButton *close = [UIButton buttonWithType:UIButtonTypeSystem];
+    [close setTitle:@"返回" forState:UIControlStateNormal];
+    [close setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    close.translatesAutoresizingMaskIntoConstraints = NO;
+    [close addTarget:self action:@selector(close:) forControlEvents:UIControlEventTouchUpInside];
+    [panel addSubview:close];
+    [host addSubview:panel];
+    [NSLayoutConstraint activateConstraints:@[
+        [panel.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-14],
+        [panel.centerYAnchor constraintEqualToAnchor:host.centerYAnchor],
+        [panel.widthAnchor constraintEqualToConstant:260],
+        [panel.heightAnchor constraintEqualToConstant:210],
+        [heading.topAnchor constraintEqualToAnchor:panel.topAnchor constant:18],
+        [heading.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
+        [status.topAnchor constraintEqualToAnchor:heading.bottomAnchor constant:20],
+        [status.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
+        [info.topAnchor constraintEqualToAnchor:status.bottomAnchor constant:18],
+        [info.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
+        [info.widthAnchor constraintEqualToConstant:190],
+        [info.heightAnchor constraintEqualToConstant:36],
+        [close.topAnchor constraintEqualToAnchor:info.bottomAnchor constant:8],
+        [close.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor]
+    ]];
+}
+- (void)close:(UIButton *)sender {
+    UIView *panel = sender.superview;
+    if (panel.tag == kSAOPanelTag) [panel removeFromSuperview];
+}
+- (void)status:(UIButton *)sender {
+    UILabel *status = (UILabel *)[sender.superview viewWithTag:kSAOStatusTag];
+    if ([status isKindOfClass:[UILabel class]]) {
+        status.text = [NSString stringWithFormat:@"桌面横屏：%@  ·  HUD：%@", gLandscape ? @"开" : @"关", gHUD ? @"开" : @"关"];
+    }
+}
+@end
+static AincradMenuActions *gMenuActions;
+static void UpdateSAOMenu(UIView *host) {
+    if (!host) return;
+    UIView *entry = [host viewWithTag:kSAOEntryTag];
+    UIView *panel = [host viewWithTag:kSAOPanelTag];
+    if (!gEnabled || !gSAOMenu) {
+        [entry removeFromSuperview];
+        [panel removeFromSuperview];
+        return;
+    }
+    if (entry) return;
+    if (!gMenuActions) gMenuActions = [AincradMenuActions new];
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    button.tag = kSAOEntryTag;
+    button.translatesAutoresizingMaskIntoConstraints = NO;
+    [button setTitle:@"✧ MENU" forState:UIControlStateNormal];
+    [button setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+    button.titleLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
+    button.backgroundColor = [UIColor colorWithRed:0.08 green:0.2 blue:0.36 alpha:0.86];
+    button.layer.cornerRadius = 10;
+    button.layer.borderWidth = 1;
+    button.layer.borderColor = [UIColor colorWithRed:0.65 green:0.86 blue:1 alpha:0.85].CGColor;
+    [button addTarget:gMenuActions action:@selector(toggle:) forControlEvents:UIControlEventTouchUpInside];
+    [host addSubview:button];
+    [NSLayoutConstraint activateConstraints:@[
+        [button.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-12],
+        [button.bottomAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.bottomAnchor constant:-14],
+        [button.widthAnchor constraintEqualToConstant:78],
+        [button.heightAnchor constraintEqualToConstant:36]
+    ]];
+}
+
 static void AincradUpdateHomeWallpaper(UIView *host);
 
 // Native SpringBoard home-screen rotation policy. Based on documented open-source
@@ -95,11 +207,13 @@ static void AincradUpdateHomeWallpaper(UIView *host);
 - (void)viewDidLayoutSubviews {
     %orig;
     AincradUpdateHomeWallpaper([(UIViewController *)self view]);
+    UpdateSAOMenu([(UIViewController *)self view]);
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
     AincradUpdateHomeWallpaper([(UIViewController *)self view]);
     UpdateHUD([(UIViewController *)self view]);
+    UpdateSAOMenu([(UIViewController *)self view]);
 }
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return ShouldRotate() ? HomeOrientationMask() : %orig;
