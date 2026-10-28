@@ -60,8 +60,8 @@ static void UpdateHUD(UIView *host) {
     [panel addSubview:text];
     [host addSubview:panel];
     [NSLayoutConstraint activateConstraints:@[
-        [panel.centerXAnchor constraintEqualToAnchor:host.centerXAnchor],
-        [panel.topAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.topAnchor constant:8],
+        [panel.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-14],
+        [panel.topAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.topAnchor constant:14],
         [panel.widthAnchor constraintLessThanOrEqualToAnchor:host.widthAnchor multiplier:0.86],
         [panel.heightAnchor constraintEqualToConstant:34],
         [text.leadingAnchor constraintEqualToAnchor:panel.leadingAnchor constant:18],
@@ -74,37 +74,51 @@ static void UpdateHUD(UIView *host) {
 static const NSInteger kSAOEntryTag = 0xA1D0;
 static const NSInteger kSAOPanelTag = 0xA1D1;
 static const NSInteger kSAOStatusTag = 0xA1D2;
+static const NSInteger kSAOSubmenuTag = 0xA1D3;
 @interface AincradMenuActions : NSObject
 - (void)toggle:(UIButton *)sender;
 - (void)close:(UIButton *)sender;
 - (void)status:(UIButton *)sender;
+- (void)submenu:(UIButton *)sender;
 @end
 @implementation AincradMenuActions
 - (void)toggle:(UIButton *)sender {
     UIView *host = sender.superview;
     if (!host) return;
     UIView *old = [host viewWithTag:kSAOPanelTag];
-    if (old) { [old removeFromSuperview]; return; }
+    if (old) { [UIView animateWithDuration:0.18 animations:^{ old.alpha = 0; old.transform = CGAffineTransformMakeScale(0.94, 0.94); } completion:^(BOOL finished) { [old removeFromSuperview]; }]; return; }
     UIView *panel = [[UIView alloc] initWithFrame:CGRectZero];
     panel.tag = kSAOPanelTag;
     panel.translatesAutoresizingMaskIntoConstraints = NO;
-    panel.backgroundColor = [UIColor colorWithRed:0.055 green:0.105 blue:0.19 alpha:0.94];
-    panel.layer.cornerRadius = 15;
+    panel.backgroundColor = [UIColor colorWithRed:0.055 green:0.105 blue:0.19 alpha:0.72];
+    panel.layer.cornerRadius = 17;
+    panel.layer.shadowColor = [UIColor colorWithRed:0.25 green:0.72 blue:1 alpha:1].CGColor;
+    panel.layer.shadowOpacity = 0.25;
+    panel.layer.shadowRadius = 18;
+    panel.layer.shadowOffset = CGSizeMake(0, 6);
     panel.layer.borderWidth = 1;
     panel.layer.borderColor = [UIColor colorWithRed:0.68 green:0.86 blue:1 alpha:0.9].CGColor;
     UILabel *heading = [UILabel new];
-    heading.text = @"✧ AINCRAD  /  SYSTEM MENU";
+    heading.text = @"✧ AINCRAD  /  MENU";
     heading.textColor = [UIColor whiteColor];
-    heading.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
+    heading.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
     heading.translatesAutoresizingMaskIntoConstraints = NO;
     [panel addSubview:heading];
     UILabel *status = [UILabel new];
     status.tag = kSAOStatusTag;
-    status.text = @"欢迎进入 Aincrad";
+    status.text = @"SYSTEM ONLINE · 01";
     status.textColor = [UIColor colorWithRed:0.78 green:0.9 blue:1 alpha:1];
     status.font = [UIFont systemFontOfSize:12];
     status.translatesAutoresizingMaskIntoConstraints = NO;
     [panel addSubview:status];
+    UIButton *sub = [UIButton buttonWithType:UIButtonTypeSystem];
+    [sub setTitle:@"◇ 系统功能  ›" forState:UIControlStateNormal];
+    [sub setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+    sub.backgroundColor = [UIColor colorWithRed:0.12 green:0.26 blue:0.43 alpha:0.78];
+    sub.layer.cornerRadius = 8;
+    sub.translatesAutoresizingMaskIntoConstraints = NO;
+    [sub addTarget:self action:@selector(submenu:) forControlEvents:UIControlEventTouchUpInside];
+    [panel addSubview:sub];
     UIButton *info = [UIButton buttonWithType:UIButtonTypeSystem];
     [info setTitle:@"查看系统状态" forState:UIControlStateNormal];
     [info setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -123,29 +137,50 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
     [NSLayoutConstraint activateConstraints:@[
         [panel.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-14],
         [panel.centerYAnchor constraintEqualToAnchor:host.centerYAnchor],
-        [panel.widthAnchor constraintEqualToConstant:260],
-        [panel.heightAnchor constraintEqualToConstant:210],
-        [heading.topAnchor constraintEqualToAnchor:panel.topAnchor constant:18],
+        [panel.widthAnchor constraintEqualToConstant:228],
+        [panel.heightAnchor constraintEqualToConstant:198],
+        [heading.topAnchor constraintEqualToAnchor:panel.topAnchor constant:15],
         [heading.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
-        [status.topAnchor constraintEqualToAnchor:heading.bottomAnchor constant:20],
+        [status.topAnchor constraintEqualToAnchor:heading.bottomAnchor constant:12],
         [status.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
-        [info.topAnchor constraintEqualToAnchor:status.bottomAnchor constant:18],
+        [sub.topAnchor constraintEqualToAnchor:status.bottomAnchor constant:12],
+        [sub.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
+        [sub.widthAnchor constraintEqualToConstant:194],
+        [sub.heightAnchor constraintEqualToConstant:32],
+        [info.topAnchor constraintEqualToAnchor:sub.bottomAnchor constant:7],
         [info.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
-        [info.widthAnchor constraintEqualToConstant:190],
-        [info.heightAnchor constraintEqualToConstant:36],
-        [close.topAnchor constraintEqualToAnchor:info.bottomAnchor constant:8],
+        [info.widthAnchor constraintEqualToConstant:194],
+        [info.heightAnchor constraintEqualToConstant:32],
+        [close.topAnchor constraintEqualToAnchor:info.bottomAnchor constant:6],
         [close.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor]
     ]];
+    panel.alpha = 0;
+    panel.transform = CGAffineTransformMakeTranslation(24, 0);
+    [UIView animateWithDuration:0.26 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        panel.alpha = 1;
+        panel.transform = CGAffineTransformIdentity;
+    } completion:nil];
 }
 - (void)close:(UIButton *)sender {
     UIView *panel = sender.superview;
-    if (panel.tag == kSAOPanelTag) [panel removeFromSuperview];
+    if (panel.tag == kSAOPanelTag) {
+        [UIView animateWithDuration:0.18 animations:^{ panel.alpha = 0; panel.transform = CGAffineTransformMakeTranslation(18, 0); } completion:^(BOOL finished) { [panel removeFromSuperview]; }];
+    }
 }
 - (void)status:(UIButton *)sender {
     UILabel *status = (UILabel *)[sender.superview viewWithTag:kSAOStatusTag];
     if ([status isKindOfClass:[UILabel class]]) {
         status.text = [NSString stringWithFormat:@"桌面横屏：%@  ·  HUD：%@", gLandscape ? @"开" : @"关", gHUD ? @"开" : @"关"];
     }
+}
+- (void)submenu:(UIButton *)sender {
+    UIView *panel = sender.superview;
+    UILabel *status = (UILabel *)[panel viewWithTag:kSAOStatusTag];
+    if (![status isKindOfClass:UILabel.class]) return;
+    status.text = @"SYSTEM / 界面设置";
+    [UIView transitionWithView:status duration:0.2 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+        status.text = @"SYSTEM / 界面设置";
+    } completion:nil];
 }
 @end
 static AincradMenuActions *gMenuActions;
@@ -167,7 +202,7 @@ static void UpdateSAOMenu(UIView *host) {
     [button setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
     button.titleLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
     button.backgroundColor = [UIColor colorWithRed:0.08 green:0.2 blue:0.36 alpha:0.86];
-    button.layer.cornerRadius = 10;
+    button.layer.cornerRadius = 18;
     button.layer.borderWidth = 1;
     button.layer.borderColor = [UIColor colorWithRed:0.65 green:0.86 blue:1 alpha:0.85].CGColor;
     [button addTarget:gMenuActions action:@selector(toggle:) forControlEvents:UIControlEventTouchUpInside];
