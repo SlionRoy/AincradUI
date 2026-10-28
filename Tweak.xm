@@ -41,7 +41,6 @@ static UIInterfaceOrientationMask HomeOrientationMask(void) {
 
 // Passive overlay: attaches to the home-screen controller only. It does not intercept touches.
 static const NSInteger kHUDTag = 0xA1C7;
-static const NSInteger kIconScaledFlag = 0xA1EE;
 static void UpdateHUD(UIView *host) {
     if (!host) return;
     UIView *old = [host viewWithTag:kHUDTag];
