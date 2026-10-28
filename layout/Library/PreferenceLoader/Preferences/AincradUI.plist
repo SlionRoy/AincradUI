@@ -1,1 +1,1 @@
-{ entry = { bundle = AincradUIPrefs; cell = PSLinkCell; detail = AIPRootListController; label = "Aincrad UI"; }; }
+{ entry = { bundle = AincradUIPrefs; cell = PSLinkCell; detail = AIPRootListController; isController = 1; label = "Aincrad UI"; }; }
