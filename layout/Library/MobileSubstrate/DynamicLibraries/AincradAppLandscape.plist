@@ -1,1 +1,1 @@
-{ Filter = { Classes = ( "UIApplication" ); }; }\n
+{ Filter = { Classes = ( "UIApplication" ); }; }
