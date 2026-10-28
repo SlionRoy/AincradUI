@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict><key>items</key><array>
-<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v0.9 · 统一横屏壁纸</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v1.0 · 系统横屏实验</string></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>启用 Aincrad UI</string><key>key</key><string>Enabled</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>亚丝娜 HUD 顶栏</string><key>key</key><string>HUD</string><key>default</key><true/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>隐藏 Dock（含图标）</string><key>key</key><string>HideDock</string><key>default</key><true/></dict>
@@ -9,5 +9,6 @@
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>锁定桌面横屏</string><key>key</key><string>LandscapeLock</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>横屏通知中心壁纸（实验）</string><key>key</key><string>NCWallpaper</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>横屏主页统一壁纸（实验）</string><key>key</key><string>HomeWallpaper</string><key>default</key><false/></dict>
-<dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>测试独立横屏前请关闭 AutoRotate 并 Respring；锁定横屏需同时开启独立桌面横屏；进入横屏后锁定不会随手机竖起返回竖屏。若无法读取系统壁纸，请使用 Filza 将 JPEG 图片放在 /var/mobile/Library/AincradUI/NCWallpaper.jpg；调试信息在 /var/mobile/Library/AincradUI/diagnostic.txt。主页和通知中心使用相同的 NCWallpaper.jpg；切换时闪黑问题可能仍需进一步定位。壁纸显示仍为实验性。修改后 Respring。发生桌面异常时禁用插件或通过 Dopamine 安全模式卸载。</string></dict>
+<dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>系统界面横屏（锁屏实验）</string><key>key</key><string>SystemLandscape</string><key>default</key><false/></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>footerText</key><string>测试独立横屏前请关闭 AutoRotate 并 Respring；锁定横屏需同时开启独立桌面横屏；进入横屏后锁定不会随手机竖起返回竖屏。若无法读取系统壁纸，请使用 Filza 将 JPEG 图片放在 /var/mobile/Library/AincradUI/NCWallpaper.jpg；调试信息在 /var/mobile/Library/AincradUI/diagnostic.txt。主页和通知中心使用相同的 NCWallpaper.jpg；切换时闪黑问题可能仍需进一步定位。第一阶段仅测试 CoverSheet 锁屏/通知中心旋转，不强制 App、密码输入或控制中心。若显示异常立即关闭并 Respring。壁纸仍为实验性。修改后 Respring。发生桌面异常时禁用插件或通过 Dopamine 安全模式卸载。</string></dict>
 </array></dict></plist>
