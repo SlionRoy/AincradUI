@@ -227,6 +227,12 @@ static void AincradUpdateNCWallpaper(UIView *host) {
 // CoverSheet is the iOS 13+ combined lock screen / notification center surface.
 // The feature remains disabled until opted in, and only acts when landscape.
 %hook CSCoverSheetViewController
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return ShouldSystemLandscape() ? UIInterfaceOrientationMaskLandscape : %orig;
+}
+- (BOOL)shouldAutorotate {
+    return ShouldSystemLandscape() ? YES : %orig;
+}
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
     AincradUpdateNCWallpaper([(UIViewController *)self view]);
@@ -234,18 +240,6 @@ static void AincradUpdateNCWallpaper(UIView *host) {
 - (void)viewDidLayoutSubviews {
     %orig;
     AincradUpdateNCWallpaper([(UIViewController *)self view]);
-}
-%end
-
-
-// EXPERIMENTAL: landscape policy for CoverSheet only. Authentication and passcode
-// entry are deliberately not overridden; no global UIWindow / UIApplication hooks.
-%hook CSCoverSheetViewController
-- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return ShouldSystemLandscape() ? UIInterfaceOrientationMaskLandscape : %orig;
-}
-- (BOOL)shouldAutorotate {
-    return ShouldSystemLandscape() ? YES : %orig;
 }
 %end
 
