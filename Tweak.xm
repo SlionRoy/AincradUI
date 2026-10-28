@@ -1,12 +1,15 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <CoreFoundation/CoreFoundation.h>
+#import <objc/message.h>
+#import <objc/runtime.h>
 
 static BOOL gEnabled = NO;
 static BOOL gHideDock = YES;
 static BOOL gLandscape = NO;
 static BOOL gLandscapeLock = NO;
 static BOOL gHUD = YES;
+static BOOL gNCWallpaper = NO;
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
     NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
@@ -15,6 +18,7 @@ static void LoadPrefs(void) {
     gLandscape = [p[@"Landscape"] boolValue];
     gLandscapeLock = [p[@"LandscapeLock"] boolValue];
     gHUD = p[@"HUD"] ? [p[@"HUD"] boolValue] : YES;
+    gNCWallpaper = [p[@"NCWallpaper"] boolValue];
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
 static BOOL ShouldHide(void) { return gEnabled && gHideDock; }
@@ -97,6 +101,61 @@ static void UpdateHUD(UIView *host) {
 }
 - (BOOL)shouldAutorotate {
     return ShouldRotate() ? YES : %orig;
+}
+%end
+
+
+/* Experimental, isolated landscape Notification Center wallpaper.
+ * Uses SpringBoard wallpaper controller at runtime. No system files altered.
+ * Falls back to native background if no UIImage can be obtained.
+ */
+static const NSInteger kNCWallpaperTag = 0xA1C8;
+static UIImage *AincradLockWallpaper(void) {
+    Class cls = NSClassFromString(@"SBWallpaperController");
+    SEL shared = NSSelectorFromString(@"sharedInstance");
+    if (!cls || ![cls respondsToSelector:shared]) return nil;
+    id controller = ((id (*)(id, SEL))objc_msgSend)(cls, shared);
+    if (!controller) return nil;
+    SEL selector = NSSelectorFromString(@"wallpaperImageForVariant:");
+    if (![controller respondsToSelector:selector]) return nil;
+    NSMethodSignature *sig = [controller methodSignatureForSelector:selector];
+    if (!sig || sig.numberOfArguments != 3 || sig.methodReturnLength != sizeof(id) || sig.methodReturnType[0] != '@') return nil;
+    // Wallpaper variant 0 is the lock screen on older SpringBoard implementations.
+    // We do not assume this method exists on iOS 16.
+    id result = ((id (*)(id, SEL, NSInteger))objc_msgSend)(controller, selector, (NSInteger)0);
+    return [result isKindOfClass:[UIImage class]] ? result : nil;
+}
+static void AincradUpdateNCWallpaper(UIView *host) {
+    if (!host) return;
+    UIView *existing = [host viewWithTag:kNCWallpaperTag];
+    BOOL horizontal = CGRectGetWidth(host.bounds) > CGRectGetHeight(host.bounds);
+    if (!gEnabled || !gNCWallpaper || !horizontal) {
+        [existing removeFromSuperview];
+        return;
+    }
+    UIImage *wallpaper = AincradLockWallpaper();
+    if (!wallpaper) {
+        [existing removeFromSuperview];
+        return;
+    }
+    UIImageView *imageView = (UIImageView *)existing;
+    if (![imageView isKindOfClass:[UIImageView class]]) {
+        [existing removeFromSuperview];
+        imageView = [[UIImageView alloc] initWithFrame:host.bounds];
+        imageView.tag = kNCWallpaperTag;
+        imageView.userInteractionEnabled = NO;
+        imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        imageView.contentMode = UIViewContentModeScaleAspectFill;
+        imageView.clipsToBounds = YES;
+        [host insertSubview:imageView atIndex:0];
+    }
+    imageView.frame = host.bounds;
+    if (imageView.image != wallpaper) imageView.image = wallpaper;
+}
+%hook SBNotificationCenterViewController
+- (void)viewDidLayoutSubviews {
+    %orig;
+    AincradUpdateNCWallpaper([(UIViewController *)self view]);
 }
 %end
 
