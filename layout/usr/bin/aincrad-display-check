@@ -1,0 +1,27 @@
+#!/bin/sh
+# Aincrad UI read-only diagnostic. Does NOT write display configuration.
+set -u
+OUT="/var/mobile/Library/AincradUI/DisplayReport.txt"
+mkdir -p "/var/mobile/Library/AincradUI" 2>/dev/null || exit 1
+umask 077
+{
+  echo "AINCRAD DISPLAY CAPABILITY REPORT"
+  date -u 2>/dev/null
+  echo "device: $(sysctl -n hw.machine 2>/dev/null || echo unknown)"
+  echo "system: $(sw_vers -productVersion 2>/dev/null || echo unknown)"
+  echo "build: $(sw_vers -buildVersion 2>/dev/null || echo unknown)"
+  echo "kernel: $(uname -r 2>/dev/null || echo unknown)"
+  echo "jailbreak prefix: $(test -d /var/jb && echo /var/jb || echo absent)"
+  echo "backboardd running:"
+  ps -A 2>/dev/null | grep '[b]ackboardd' | head -n 3 || :
+  echo "display-related tools:"
+  for bin in sysctl sw_vers strings otool nm ldid; do
+    command -v "$bin" 2>/dev/null || :
+  done
+  echo "backboardd binary candidates:"
+  for p in /usr/libexec/backboardd /System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices; do
+    if test -r "$p"; then ls -l "$p"; else echo "not readable: $p"; fi
+  done
+  echo "NOTE: no display mode, framebuffer, preferences or launchd state changed."
+} > "$OUT"
+echo "Read-only report saved to: $OUT"
