@@ -14,6 +14,8 @@ static BOOL gHomeWallpaper = NO;
 static BOOL gSystemLandscape = NO;
 static BOOL gControlCenterLandscape = NO;
 static BOOL gSAOMenu = NO;
+static NSInteger gScaleMode = 0;
+static CGFloat AincradScale(void) { return gEnabled ? (gScaleMode == 1 ? 0.90 : (gScaleMode == 2 ? 0.84 : 1.0)) : 1.0; }
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
     NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
@@ -27,6 +29,7 @@ static void LoadPrefs(void) {
     gSystemLandscape = [p[@"SystemLandscape"] boolValue];
     gControlCenterLandscape = [p[@"ControlCenterLandscape"] boolValue];
     gSAOMenu = [p[@"SAOMenu"] boolValue];
+    gScaleMode = MIN(2, MAX(0, [p[@"ScaleMode"] integerValue]));
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
 static BOOL ShouldSystemLandscape(void) { return gEnabled && gSystemLandscape; }
@@ -38,6 +41,7 @@ static UIInterfaceOrientationMask HomeOrientationMask(void) {
 
 // Passive overlay: attaches to the home-screen controller only. It does not intercept touches.
 static const NSInteger kHUDTag = 0xA1C7;
+static const NSInteger kIconScaledFlag = 0xA1EE;
 static void UpdateHUD(UIView *host) {
     if (!host) return;
     UIView *old = [host viewWithTag:kHUDTag];
@@ -48,12 +52,12 @@ static void UpdateHUD(UIView *host) {
     panel.userInteractionEnabled = NO;
     panel.translatesAutoresizingMaskIntoConstraints = NO;
     panel.backgroundColor = [[UIColor colorWithRed:0.08 green:0.18 blue:0.32 alpha:1] colorWithAlphaComponent:0.64];
-    panel.layer.cornerRadius = 12;
+    panel.layer.cornerRadius = 12 * AincradScale();
     panel.layer.borderWidth = 1;
     panel.layer.borderColor = [UIColor colorWithRed:0.63 green:0.83 blue:1 alpha:0.75].CGColor;
     UILabel *text = [[UILabel alloc] initWithFrame:CGRectZero];
     text.text = @"✧ ASUNA   /   AINCRAD SYSTEM";
-    text.font = [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold];
+    text.font = [UIFont systemFontOfSize:12 * AincradScale() weight:UIFontWeightSemibold];
     text.textColor = [UIColor colorWithRed:0.90 green:0.96 blue:1 alpha:1];
     text.textAlignment = NSTextAlignmentCenter;
     text.translatesAutoresizingMaskIntoConstraints = NO;
@@ -63,9 +67,9 @@ static void UpdateHUD(UIView *host) {
         [panel.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-14],
         [panel.topAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.topAnchor constant:14],
         [panel.widthAnchor constraintLessThanOrEqualToAnchor:host.widthAnchor multiplier:0.86],
-        [panel.heightAnchor constraintEqualToConstant:34],
-        [text.leadingAnchor constraintEqualToAnchor:panel.leadingAnchor constant:18],
-        [text.trailingAnchor constraintEqualToAnchor:panel.trailingAnchor constant:-18],
+        [panel.heightAnchor constraintEqualToConstant:34 * AincradScale()],
+        [text.leadingAnchor constraintEqualToAnchor:panel.leadingAnchor constant:18 * AincradScale()],
+        [text.trailingAnchor constraintEqualToAnchor:panel.trailingAnchor constant:-18 * AincradScale()],
         [text.centerYAnchor constraintEqualToAnchor:panel.centerYAnchor]
     ]];
 }
@@ -90,7 +94,7 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
     panel.tag = kSAOPanelTag;
     panel.translatesAutoresizingMaskIntoConstraints = NO;
     panel.backgroundColor = [UIColor colorWithRed:0.055 green:0.105 blue:0.19 alpha:0.72];
-    panel.layer.cornerRadius = 17;
+    panel.layer.cornerRadius = 17 * AincradScale();
     panel.layer.shadowColor = [UIColor colorWithRed:0.25 green:0.72 blue:1 alpha:1].CGColor;
     panel.layer.shadowOpacity = 0.25;
     panel.layer.shadowRadius = 18;
@@ -100,14 +104,14 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
     UILabel *heading = [UILabel new];
     heading.text = @"✧ AINCRAD  /  MENU";
     heading.textColor = [UIColor whiteColor];
-    heading.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
+    heading.font = [UIFont systemFontOfSize:13 * AincradScale() weight:UIFontWeightSemibold];
     heading.translatesAutoresizingMaskIntoConstraints = NO;
     [panel addSubview:heading];
     UILabel *status = [UILabel new];
     status.tag = kSAOStatusTag;
     status.text = @"SYSTEM ONLINE · 01";
     status.textColor = [UIColor colorWithRed:0.78 green:0.9 blue:1 alpha:1];
-    status.font = [UIFont systemFontOfSize:12];
+    status.font = [UIFont systemFontOfSize:12 * AincradScale()];
     status.translatesAutoresizingMaskIntoConstraints = NO;
     [panel addSubview:status];
     UIButton *sub = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -136,8 +140,8 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
     [NSLayoutConstraint activateConstraints:@[
         [panel.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-14],
         [panel.centerYAnchor constraintEqualToAnchor:host.centerYAnchor],
-        [panel.widthAnchor constraintEqualToConstant:228],
-        [panel.heightAnchor constraintEqualToConstant:198],
+        [panel.widthAnchor constraintEqualToConstant:228 * AincradScale()],
+        [panel.heightAnchor constraintEqualToConstant:198 * AincradScale()],
         [heading.topAnchor constraintEqualToAnchor:panel.topAnchor constant:15],
         [heading.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
         [status.topAnchor constraintEqualToAnchor:heading.bottomAnchor constant:12],
@@ -199,7 +203,7 @@ static void UpdateSAOMenu(UIView *host) {
     button.translatesAutoresizingMaskIntoConstraints = NO;
     [button setTitle:@"✧ MENU" forState:UIControlStateNormal];
     [button setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
-    button.titleLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
+    button.titleLabel.font = [UIFont systemFontOfSize:12 * AincradScale() weight:UIFontWeightBold];
     button.backgroundColor = [UIColor colorWithRed:0.08 green:0.2 blue:0.36 alpha:0.86];
     button.layer.cornerRadius = 18;
     button.layer.borderWidth = 1;
@@ -209,8 +213,8 @@ static void UpdateSAOMenu(UIView *host) {
     [NSLayoutConstraint activateConstraints:@[
         [button.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-12],
         [button.bottomAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.bottomAnchor constant:-14],
-        [button.widthAnchor constraintEqualToConstant:78],
-        [button.heightAnchor constraintEqualToConstant:36]
+        [button.widthAnchor constraintEqualToConstant:78 * AincradScale()],
+        [button.heightAnchor constraintEqualToConstant:36 * AincradScale()]
     ]];
 }
 
@@ -407,6 +411,21 @@ static void AincradUpdateNCWallpaper(UIView *host) {
     if (gEnabled && gControlCenterLandscape) {
         UIView *v = [(UIViewController *)self view];
         AincradDiag([NSString stringWithFormat:@"control-center host=%@ size=%@", NSStringFromClass([v class]), NSStringFromCGRect(v.bounds)]);
+    }
+}
+%end
+
+
+// Compact mode scales icon views around their centers without modifying SpringBoard's grid,
+// hit-test routing or folder data. Kept separate from the existing rotation hooks.
+// The outer view frame remains system-managed to avoid layout recursion.
+%hook SBIconView
+- (void)layoutSubviews {
+    %orig;
+    CGFloat factor = AincradScale();
+    CGAffineTransform wanted = CGAffineTransformMakeScale(factor, factor);
+    if (!CGAffineTransformEqualToTransform(((UIView *)self).transform, wanted)) {
+        ((UIView *)self).transform = wanted;
     }
 }
 %end
