@@ -184,7 +184,7 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
         // but this is not an applied system resolution.
         CGFloat targetW = ceil(pixels.width / factor / 2.0) * 2.0;
         CGFloat targetH = ceil(pixels.height / factor / 2.0) * 2.0;
-        status.text = [NSString stringWithFormat:@"原生 %.0f×%.0f · 预估 %.0f×%.0f", pixels.width, pixels.height, targetW, targetH];
+        status.text = [NSString stringWithFormat:@"%.0f×%.0f → %.0f×%.0f (预览)", pixels.width, pixels.height, targetW, targetH];
         NSString *info = [NSString stringWithFormat:@"read-only display: pixels=%@ nativeScale=%.3f bounds=%@ scale=%.3f",
             NSStringFromCGSize(pixels), scale, NSStringFromCGRect(screen.bounds), screen.scale];
         NSLog(@"[AincradUI] %@", info);
