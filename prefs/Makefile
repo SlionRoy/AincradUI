@@ -3,7 +3,7 @@ ARCHS := arm64
 THEOS_PACKAGE_SCHEME := rootless
 include $(THEOS)/makefiles/common.mk
 BUNDLE_NAME := AincradUIPrefs
-AincradUIPrefs_FILES := AIPRootListController.m AIPAppListController.m
+AincradUIPrefs_FILES := AIPRootListController.m
 AincradUIPrefs_FRAMEWORKS := UIKit
 AincradUIPrefs_LDFLAGS += -Wl,-undefined,dynamic_lookup
 AincradUIPrefs_INSTALL_PATH := /Library/PreferenceBundles
