@@ -37,12 +37,20 @@ static void AIPRequestLandscape(void) {
             if (scene.activationState != UISceneActivationStateForegroundActive) continue;
             UIWindowSceneGeometryPreferencesIOS *prefs =
                 [[UIWindowSceneGeometryPreferencesIOS alloc] initWithInterfaceOrientations:UIInterfaceOrientationMaskLandscape];
+            for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+                [window.rootViewController setNeedsUpdateOfSupportedInterfaceOrientations];
+            }
             [(UIWindowScene *)scene requestGeometryUpdateWithPreferences:prefs errorHandler:^(NSError *error) {
                 NSLog(@"[AincradUI] app landscape request failed: %@", error);
             }];
         }
     }
 }
+%hook UIWindowScene
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return AIPSelected() ? UIInterfaceOrientationMaskLandscape : %orig;
+}
+%end
 %hook NSBundle
 - (id)objectForInfoDictionaryKey:(NSString *)key {
     if (self == [NSBundle mainBundle] && AIPSelected() &&
