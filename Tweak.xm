@@ -5,6 +5,7 @@
 static BOOL gEnabled = NO;
 static BOOL gHideDock = YES;
 static BOOL gLandscape = NO;
+static BOOL gLandscapeLock = NO;
 static BOOL gHUD = YES;
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
@@ -12,11 +13,15 @@ static void LoadPrefs(void) {
     gEnabled = [p[@"Enabled"] boolValue];
     gHideDock = p[@"HideDock"] ? [p[@"HideDock"] boolValue] : YES;
     gLandscape = [p[@"Landscape"] boolValue];
+    gLandscapeLock = [p[@"LandscapeLock"] boolValue];
     gHUD = p[@"HUD"] ? [p[@"HUD"] boolValue] : YES;
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
 static BOOL ShouldHide(void) { return gEnabled && gHideDock; }
 static BOOL ShouldRotate(void) { return gEnabled && gLandscape; }
+static UIInterfaceOrientationMask HomeOrientationMask(void) {
+    return (ShouldRotate() && gLandscapeLock) ? UIInterfaceOrientationMaskLandscape : UIInterfaceOrientationMaskAllButUpsideDown;
+}
 
 // Passive overlay: attaches to the home-screen controller only. It does not intercept touches.
 static const NSInteger kHUDTag = 0xA1C7;
@@ -69,7 +74,7 @@ static void UpdateHUD(UIView *host) {
     return ShouldRotate() ? YES : %orig;
 }
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return ShouldRotate() ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
+    return ShouldRotate() ? HomeOrientationMask() : %orig;
 }
 %end
 
@@ -79,7 +84,7 @@ static void UpdateHUD(UIView *host) {
     UpdateHUD([(UIViewController *)self view]);
 }
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return ShouldRotate() ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
+    return ShouldRotate() ? HomeOrientationMask() : %orig;
 }
 - (BOOL)shouldAutorotate {
     return ShouldRotate() ? YES : %orig;
@@ -88,7 +93,7 @@ static void UpdateHUD(UIView *host) {
 
 %hook SBRootFolderController
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return ShouldRotate() ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
+    return ShouldRotate() ? HomeOrientationMask() : %orig;
 }
 - (BOOL)shouldAutorotate {
     return ShouldRotate() ? YES : %orig;
