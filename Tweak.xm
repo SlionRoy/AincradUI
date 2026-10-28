@@ -63,6 +63,8 @@ static void UpdateHUD(UIView *host) {
     ]];
 }
 
+static void AincradUpdateHomeWallpaper(UIView *host);
+
 // Native SpringBoard home-screen rotation policy. Based on documented open-source
 // AutoRotate hooks (MIT), without app, lock-screen or Control Center overrides.
 // Private selectors may differ on iOS 16.7.16: experimental, off by default.
