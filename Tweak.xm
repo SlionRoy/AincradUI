@@ -11,6 +11,7 @@ static BOOL gLandscapeLock = NO;
 static BOOL gHUD = YES;
 static BOOL gNCWallpaper = NO;
 static BOOL gHomeWallpaper = NO;
+static BOOL gSystemLandscape = NO;
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
     NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
@@ -21,8 +22,10 @@ static void LoadPrefs(void) {
     gHUD = p[@"HUD"] ? [p[@"HUD"] boolValue] : YES;
     gNCWallpaper = [p[@"NCWallpaper"] boolValue];
     gHomeWallpaper = [p[@"HomeWallpaper"] boolValue];
+    gSystemLandscape = [p[@"SystemLandscape"] boolValue];
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
+static BOOL ShouldSystemLandscape(void) { return gEnabled && gSystemLandscape; }
 static BOOL ShouldHide(void) { return gEnabled && gHideDock; }
 static BOOL ShouldRotate(void) { return gEnabled && gLandscape; }
 static UIInterfaceOrientationMask HomeOrientationMask(void) {
@@ -231,6 +234,18 @@ static void AincradUpdateNCWallpaper(UIView *host) {
 - (void)viewDidLayoutSubviews {
     %orig;
     AincradUpdateNCWallpaper([(UIViewController *)self view]);
+}
+%end
+
+
+// EXPERIMENTAL: landscape policy for CoverSheet only. Authentication and passcode
+// entry are deliberately not overridden; no global UIWindow / UIApplication hooks.
+%hook CSCoverSheetViewController
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return ShouldSystemLandscape() ? UIInterfaceOrientationMaskLandscape : %orig;
+}
+- (BOOL)shouldAutorotate {
+    return ShouldSystemLandscape() ? YES : %orig;
 }
 %end
 
