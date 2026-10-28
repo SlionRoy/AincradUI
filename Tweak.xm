@@ -176,7 +176,13 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
 - (void)status:(UIButton *)sender {
     UILabel *status = (UILabel *)[sender.superview viewWithTag:kSAOStatusTag];
     if ([status isKindOfClass:[UILabel class]]) {
-        status.text = [NSString stringWithFormat:@"桌面横屏：%@  ·  HUD：%@", gLandscape ? @"开" : @"关", gHUD ? @"开" : @"关"];
+        UIScreen *screen = [UIScreen mainScreen];
+        CGSize pixels = screen.nativeBounds.size;
+        CGFloat scale = screen.nativeScale;
+        status.text = [NSString stringWithFormat:@"屏幕 %.0f×%.0f · %.2fx", pixels.width, pixels.height, scale];
+        NSString *info = [NSString stringWithFormat:@"read-only display: pixels=%@ nativeScale=%.3f bounds=%@ scale=%.3f",
+            NSStringFromCGSize(pixels), scale, NSStringFromCGRect(screen.bounds), screen.scale];
+        NSLog(@"[AincradUI] %@", info);
     }
 }
 - (void)submenu:(UIButton *)sender {
