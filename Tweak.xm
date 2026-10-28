@@ -110,20 +110,21 @@ static void UpdateHUD(UIView *host) {
  * Falls back to native background if no UIImage can be obtained.
  */
 static const NSInteger kNCWallpaperTag = 0xA1C8;
+static NSString * const kCustomWallpaperPath = @"/var/mobile/Library/AincradUI/NCWallpaper.jpg";
 static UIImage *AincradLockWallpaper(void) {
     Class cls = NSClassFromString(@"SBWallpaperController");
     SEL shared = NSSelectorFromString(@"sharedInstance");
-    if (!cls || ![cls respondsToSelector:shared]) return nil;
+    if (!cls || ![cls respondsToSelector:shared]) return [UIImage imageWithContentsOfFile:kCustomWallpaperPath];
     id controller = ((id (*)(id, SEL))objc_msgSend)(cls, shared);
-    if (!controller) return nil;
+    if (!controller) return [UIImage imageWithContentsOfFile:kCustomWallpaperPath];
     SEL selector = NSSelectorFromString(@"wallpaperImageForVariant:");
-    if (![controller respondsToSelector:selector]) return nil;
+    if (![controller respondsToSelector:selector]) return [UIImage imageWithContentsOfFile:kCustomWallpaperPath];
     NSMethodSignature *sig = [controller methodSignatureForSelector:selector];
-    if (!sig || sig.numberOfArguments != 3 || sig.methodReturnLength != sizeof(id) || sig.methodReturnType[0] != '@') return nil;
+    if (!sig || sig.numberOfArguments != 3 || sig.methodReturnLength != sizeof(id) || sig.methodReturnType[0] != '@') return [UIImage imageWithContentsOfFile:kCustomWallpaperPath];
     // Wallpaper variant 0 is the lock screen on older SpringBoard implementations.
     // We do not assume this method exists on iOS 16.
     id result = ((id (*)(id, SEL, NSInteger))objc_msgSend)(controller, selector, (NSInteger)0);
-    return [result isKindOfClass:[UIImage class]] ? result : nil;
+    return [result isKindOfClass:[UIImage class]] ? result : [UIImage imageWithContentsOfFile:kCustomWallpaperPath];
 }
 static void AincradUpdateNCWallpaper(UIView *host) {
     if (!host) return;
@@ -138,7 +139,7 @@ static void AincradUpdateNCWallpaper(UIView *host) {
         [existing removeFromSuperview];
         return;
     }
-    UIImageView *imageView = (UIImageView *)existing;
+    UIImageView *imageView = [existing isKindOfClass:[UIImageView class]] ? (UIImageView *)existing : nil;
     if (![imageView isKindOfClass:[UIImageView class]]) {
         [existing removeFromSuperview];
         imageView = [[UIImageView alloc] initWithFrame:host.bounds];
@@ -147,9 +148,12 @@ static void AincradUpdateNCWallpaper(UIView *host) {
         imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageView.clipsToBounds = YES;
-        [host insertSubview:imageView atIndex:0];
+        // Place above the first (usually opaque backdrop) subview, below subsequent content.
+        NSUInteger index = MIN((NSUInteger)1, host.subviews.count);
+        [host insertSubview:imageView atIndex:index];
     }
     imageView.frame = host.bounds;
+    imageView.alpha = 0.9;
     if (imageView.image != wallpaper) imageView.image = wallpaper;
 }
 %hook SBNotificationCenterViewController
