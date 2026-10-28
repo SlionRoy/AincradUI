@@ -52,6 +52,27 @@ static void UpdateHUD(UIView *host) {
     ]];
 }
 
+// Native SpringBoard home-screen rotation policy. Based on documented open-source
+// AutoRotate hooks (MIT), without app, lock-screen or Control Center overrides.
+// Private selectors may differ on iOS 16.7.16: experimental, off by default.
+%hook SpringBoard
+- (BOOL)homeScreenSupportsRotation {
+    return ShouldRotate() ? YES : %orig;
+}
+- (long long)homeScreenRotationStyle {
+    return ShouldRotate() ? 1 : %orig;
+}
+%end
+
+%hook SBHomeScreenViewController
+- (BOOL)shouldAutorotate {
+    return ShouldRotate() ? YES : %orig;
+}
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return ShouldRotate() ? UIInterfaceOrientationMaskAllButUpsideDown : %orig;
+}
+%end
+
 %hook SBIconController
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
