@@ -92,12 +92,12 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
     UIView *host = sender.superview;
     if (!host) return;
     UIView *old = [host viewWithTag:kSAOPanelTag];
-    if (old) { [UIView animateWithDuration:0.18 animations:^{ old.alpha = 0; old.transform = CGAffineTransformMakeScale(0.94, 0.94); } completion:^(BOOL finished) { [old removeFromSuperview]; }]; return; }
+    if (old) { [UIView animateWithDuration:0.18 animations:^{ old.alpha = 0; old.transform = CGAffineTransformMakeScale(AincradScale() * 0.94, AincradScale() * 0.94); } completion:^(BOOL finished) { [old removeFromSuperview]; }]; return; }
     UIView *panel = [[UIView alloc] initWithFrame:CGRectZero];
     panel.tag = kSAOPanelTag;
     panel.translatesAutoresizingMaskIntoConstraints = NO;
     panel.backgroundColor = [UIColor colorWithRed:0.055 green:0.105 blue:0.19 alpha:0.72];
-    panel.layer.cornerRadius = 17 * AincradScale();
+    panel.layer.cornerRadius = 17;
     panel.layer.shadowColor = [UIColor colorWithRed:0.25 green:0.72 blue:1 alpha:1].CGColor;
     panel.layer.shadowOpacity = 0.25;
     panel.layer.shadowRadius = 18;
@@ -107,14 +107,14 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
     UILabel *heading = [UILabel new];
     heading.text = @"✧ AINCRAD  /  MENU";
     heading.textColor = [UIColor whiteColor];
-    heading.font = [UIFont systemFontOfSize:13 * AincradScale() weight:UIFontWeightSemibold];
+    heading.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
     heading.translatesAutoresizingMaskIntoConstraints = NO;
     [panel addSubview:heading];
     UILabel *status = [UILabel new];
     status.tag = kSAOStatusTag;
     status.text = @"SYSTEM ONLINE · 01";
     status.textColor = [UIColor colorWithRed:0.78 green:0.9 blue:1 alpha:1];
-    status.font = [UIFont systemFontOfSize:12 * AincradScale()];
+    status.font = [UIFont systemFontOfSize:12];
     status.translatesAutoresizingMaskIntoConstraints = NO;
     [panel addSubview:status];
     UIButton *sub = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -143,8 +143,8 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
     [NSLayoutConstraint activateConstraints:@[
         [panel.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-14],
         [panel.centerYAnchor constraintEqualToAnchor:host.centerYAnchor],
-        [panel.widthAnchor constraintEqualToConstant:228 * AincradScale()],
-        [panel.heightAnchor constraintEqualToConstant:198 * AincradScale()],
+        [panel.widthAnchor constraintEqualToConstant:228],
+        [panel.heightAnchor constraintEqualToConstant:198],
         [heading.topAnchor constraintEqualToAnchor:panel.topAnchor constant:15],
         [heading.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor],
         [status.topAnchor constraintEqualToAnchor:heading.bottomAnchor constant:12],
@@ -161,16 +161,16 @@ static const NSInteger kSAOStatusTag = 0xA1D2;
         [close.centerXAnchor constraintEqualToAnchor:panel.centerXAnchor]
     ]];
     panel.alpha = 0;
-    panel.transform = CGAffineTransformMakeTranslation(24, 0);
+    panel.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(AincradScale() * 0.94, AincradScale() * 0.94), CGAffineTransformMakeTranslation(24, 0));
     [UIView animateWithDuration:0.26 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         panel.alpha = 1;
-        panel.transform = CGAffineTransformIdentity;
+        panel.transform = CGAffineTransformMakeScale(AincradScale(), AincradScale());
     } completion:nil];
 }
 - (void)close:(UIButton *)sender {
     UIView *panel = sender.superview;
     if (panel.tag == kSAOPanelTag) {
-        [UIView animateWithDuration:0.18 animations:^{ panel.alpha = 0; panel.transform = CGAffineTransformMakeTranslation(18, 0); } completion:^(BOOL finished) { [panel removeFromSuperview]; }];
+        [UIView animateWithDuration:0.18 animations:^{ panel.alpha = 0; panel.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(AincradScale() * 0.94, AincradScale() * 0.94), CGAffineTransformMakeTranslation(18, 0)); } completion:^(BOOL finished) { [panel removeFromSuperview]; }];
     }
 }
 - (void)status:(UIButton *)sender {
@@ -199,25 +199,26 @@ static void UpdateSAOMenu(UIView *host) {
         [panel removeFromSuperview];
         return;
     }
-    if (entry) return;
+    if (entry) { entry.transform = CGAffineTransformMakeScale(AincradScale(), AincradScale()); if (panel) panel.transform = CGAffineTransformMakeScale(AincradScale(), AincradScale()); return; }
     if (!gMenuActions) gMenuActions = [AincradMenuActions new];
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     button.tag = kSAOEntryTag;
     button.translatesAutoresizingMaskIntoConstraints = NO;
     [button setTitle:@"✧ MENU" forState:UIControlStateNormal];
     [button setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
-    button.titleLabel.font = [UIFont systemFontOfSize:12 * AincradScale() weight:UIFontWeightBold];
+    button.titleLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
     button.backgroundColor = [UIColor colorWithRed:0.08 green:0.2 blue:0.36 alpha:0.86];
     button.layer.cornerRadius = 18;
     button.layer.borderWidth = 1;
     button.layer.borderColor = [UIColor colorWithRed:0.65 green:0.86 blue:1 alpha:0.85].CGColor;
     [button addTarget:gMenuActions action:@selector(toggle:) forControlEvents:UIControlEventTouchUpInside];
     [host addSubview:button];
+    button.transform = CGAffineTransformMakeScale(AincradScale(), AincradScale());
     [NSLayoutConstraint activateConstraints:@[
         [button.trailingAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.trailingAnchor constant:-12],
         [button.bottomAnchor constraintEqualToAnchor:host.safeAreaLayoutGuide.bottomAnchor constant:-14],
-        [button.widthAnchor constraintEqualToConstant:78 * AincradScale()],
-        [button.heightAnchor constraintEqualToConstant:36 * AincradScale()]
+        [button.widthAnchor constraintEqualToConstant:78],
+        [button.heightAnchor constraintEqualToConstant:36]
     ]];
 }
 
