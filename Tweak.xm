@@ -10,6 +10,7 @@ static BOOL gLandscape = NO;
 static BOOL gLandscapeLock = NO;
 static BOOL gHUD = YES;
 static BOOL gNCWallpaper = NO;
+static BOOL gHomeWallpaper = NO;
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
     NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
@@ -19,6 +20,7 @@ static void LoadPrefs(void) {
     gLandscapeLock = [p[@"LandscapeLock"] boolValue];
     gHUD = p[@"HUD"] ? [p[@"HUD"] boolValue] : YES;
     gNCWallpaper = [p[@"NCWallpaper"] boolValue];
+    gHomeWallpaper = [p[@"HomeWallpaper"] boolValue];
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
 static BOOL ShouldHide(void) { return gEnabled && gHideDock; }
@@ -83,8 +85,13 @@ static void UpdateHUD(UIView *host) {
 %end
 
 %hook SBIconController
+- (void)viewDidLayoutSubviews {
+    %orig;
+    AincradUpdateHomeWallpaper([(UIViewController *)self view]);
+}
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
+    AincradUpdateHomeWallpaper([(UIViewController *)self view]);
     UpdateHUD([(UIViewController *)self view]);
 }
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
@@ -110,6 +117,7 @@ static void UpdateHUD(UIView *host) {
  * Falls back to native background if no UIImage can be obtained.
  */
 static const NSInteger kNCWallpaperTag = 0xA1C8;
+static const NSInteger kHomeWallpaperTag = 0xA1C9;
 static NSString * const kCustomWallpaperPath = @"/var/mobile/Library/AincradUI/NCWallpaper.jpg";
 static void AincradDiag(NSString *line) {
     NSString *path = @"/var/mobile/Library/AincradUI/diagnostic.txt";
@@ -136,6 +144,38 @@ static UIImage *AincradCustomWallpaper(void) {
     }
     return im;
 }
+
+// Home background is opt-in and only mounted within the icon-controller view.
+// It is noninteractive and inserted behind the existing icon views.
+static void AincradUpdateHomeWallpaper(UIView *host) {
+    if (!host) return;
+    UIView *existing = [host viewWithTag:kHomeWallpaperTag];
+    BOOL horizontal = CGRectGetWidth(host.bounds) > CGRectGetHeight(host.bounds);
+    if (!gEnabled || !gHomeWallpaper || !horizontal) {
+        [existing removeFromSuperview];
+        return;
+    }
+    UIImage *image = [UIImage imageWithContentsOfFile:kCustomWallpaperPath];
+    if (!image) {
+        [existing removeFromSuperview];
+        return;
+    }
+    UIImageView *background = [existing isKindOfClass:[UIImageView class]] ? (UIImageView *)existing : nil;
+    if (!background) {
+        [existing removeFromSuperview];
+        background = [[UIImageView alloc] initWithFrame:host.bounds];
+        background.tag = kHomeWallpaperTag;
+        background.userInteractionEnabled = NO;
+        background.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        background.contentMode = UIViewContentModeScaleAspectFill;
+        background.clipsToBounds = YES;
+        [host insertSubview:background atIndex:0];
+    }
+    background.frame = host.bounds;
+    if (background.image != image) background.image = image;
+    [host sendSubviewToBack:background];
+}
+
 static void AincradUpdateNCWallpaper(UIView *host) {
     if (!host) return;
     UIView *existing = [host viewWithTag:kNCWallpaperTag];
@@ -166,7 +206,7 @@ static void AincradUpdateNCWallpaper(UIView *host) {
         [host insertSubview:imageView atIndex:0];
     }
     imageView.frame = host.bounds;
-    imageView.image = wallpaper;
+    if (imageView.image != wallpaper) imageView.image = wallpaper;
 }
 %hook SBNotificationCenterViewController
 - (void)viewDidAppear:(BOOL)animated {
