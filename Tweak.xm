@@ -12,6 +12,7 @@ static BOOL gHUD = YES;
 static BOOL gNCWallpaper = NO;
 static BOOL gHomeWallpaper = NO;
 static BOOL gSystemLandscape = NO;
+static BOOL gControlCenterLandscape = NO;
 static NSString * const kPrefsPath = @"/var/mobile/Library/Preferences/com.aincrad.ui.plist";
 static void LoadPrefs(void) {
     NSDictionary *p = [NSDictionary dictionaryWithContentsOfFile:kPrefsPath];
@@ -23,6 +24,7 @@ static void LoadPrefs(void) {
     gNCWallpaper = [p[@"NCWallpaper"] boolValue];
     gHomeWallpaper = [p[@"HomeWallpaper"] boolValue];
     gSystemLandscape = [p[@"SystemLandscape"] boolValue];
+    gControlCenterLandscape = [p[@"ControlCenterLandscape"] boolValue];
 }
 static void Changed(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) { LoadPrefs(); }
 static BOOL ShouldSystemLandscape(void) { return gEnabled && gSystemLandscape; }
@@ -240,6 +242,24 @@ static void AincradUpdateNCWallpaper(UIView *host) {
 - (void)viewDidLayoutSubviews {
     %orig;
     AincradUpdateNCWallpaper([(UIViewController *)self view]);
+}
+%end
+
+// Control Center policy: isolated, opt-in, and only when the screen is landscape.
+// The module grid is not resized or replaced; failure is safe to disable.
+%hook CCUIModularControlCenterOverlayViewController
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return (gEnabled && gControlCenterLandscape) ? UIInterfaceOrientationMaskLandscape : %orig;
+}
+- (BOOL)shouldAutorotate {
+    return (gEnabled && gControlCenterLandscape) ? YES : %orig;
+}
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    if (gEnabled && gControlCenterLandscape) {
+        UIView *v = [(UIViewController *)self view];
+        AincradDiag([NSString stringWithFormat:@"control-center host=%@ size=%@", NSStringFromClass([v class]), NSStringFromCGRect(v.bounds)]);
+    }
 }
 %end
 
