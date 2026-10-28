@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict><key>items</key><array>
-<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v1.8.1 · MENU 缩放修复</string></dict>
+<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>Aincrad UI v1.9 · 显示诊断</string></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>启用 Aincrad UI</string><key>key</key><string>Enabled</string><key>default</key><false/></dict>
 <dict><key>cell</key><string>PSSliderCell</string><key>label</key><string>桌面与菜单缩放（65%–100%）</string><key>key</key><string>ScaleValue</string><key>default</key><real>1.0</real><key>min</key><real>0.65</real><key>max</key><real>1.0</real><key>showValue</key><true/></dict>
 <dict><key>cell</key><string>PSSwitchCell</string><key>label</key><string>亚丝娜 HUD 顶栏</string><key>key</key><string>HUD</string><key>default</key><true/></dict>
